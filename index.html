@@ -1,0 +1,171 @@
+<script> /*
+	Game Engine Template for Three.JS
+		b_14.12.06
+*/</script>
+<!DOCTYPE html>
+<!-- [ JQuery ] -->
+<script src="js/jquery-2.1.1.js"></script>
+<!-- [ THREE.JS ] -->
+<script src="js/three.min.js"></script>
+<!-- [ THREE.JS Geometry Import/Export ] -->
+<script src="js/GeometryLoader.js"></script>
+<script src="js/GeometryExporter.js"></script>
+<!-- [ THREE.JS Controls ] -->
+<script src="js/OrbitControls.js"></script>
+<!-- [ THREEx helper Javascript ] -->
+<script src="js/threex.windowresize.js"></script>
+<!-- [ Stats.JS Onscreen Stats Display ] -->
+<script src="js/stats.min.js"></script>
+
+<body style='margin:0px;padding:0px;background-color:#000;overflow:hidden;'>
+<script>
+//_________________________________________________________________________________
+//		INITIATE BUILD
+//¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+var app = (function(){
+	//_________________________________________________________________________________
+	//		Renderer for WebGL
+	//¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+	var delta;
+	var renderer = new THREE.WebGLRenderer();
+	renderer.setSize( window.innerWidth, window.innerHeight );
+	document.body.appendChild( renderer.domElement );
+	renderer.setClearColor('black',1);
+	
+	//_________________________________________________________________________________
+	//		Render Que Array *this will be the main set of loop functions
+	//¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+	var onRenderFcts = [];
+	var sceneObjects = [];
+	//_________________________________________________________________________________
+	//		Scene
+	//¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+	var scene = new THREE.Scene();
+	
+	//_________________________________________________________________________________
+	//		Camera
+	//¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+	var camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1, 10000 );
+	camera.position.x = -50;
+	camera.position.y = 0;
+	camera.position.z = 0.2;
+	
+	//_________________________________________________________________________________
+	//		Camera Controls [THREE.OrbitControls]
+	//¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+	var controls = new THREE.OrbitControls(camera);
+	controls.target.x = -50
+	controls.target.y = 0;
+	controls.target.z = 0;
+	onRenderFcts.push(function(){
+		controls.update();
+	});
+	
+	//x = -50 to 550
+	var xx = 1;
+	onRenderFcts.push(function(){
+		if (controls.target.x >= 550) { xx = 0 }
+		else if (controls.target.x <= -50) { xx = 1 }
+		
+		if ( xx == 0 ) { controls.target.x -= 0.5; camera.position.x -= 0.5; }
+		else { controls.target.x += 0.5; camera.position.x += 0.5; }
+		
+	});
+	//_________________________________________________________________________________
+	//		Light
+	//¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+	var light = new THREE.HemisphereLight( 0xfffff0, 0x101020, 0.2 );
+	light.position.set( 0.75, 1, 0.25 );
+	scene.add(light);
+	
+	//_________________________________________________________________________________
+	//		Window Resize [THREEx.WindowResize]
+	//¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+	THREEx.WindowResize(renderer,camera);
+	
+	//_________________________________________________________________________________
+	//		Stats.JS
+	//¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+	stats = new Stats();
+	stats.setMode(0);
+	stats.domElement.style.position = 'absolute';
+	stats.domElement.style.right = '0px';
+	stats.domElement.style.bottom = '0px';
+	document.body.appendChild(stats.domElement);
+	onRenderFcts.push(function(){
+		stats.update();
+	});
+	
+	//_________________________________________________________________________________
+	//		Add Objects and Movement to Scene
+	//¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+	var textures = ["t/t1.jpg",
+					"t/t2.jpg",
+					"t/t3.jpg",
+					"t/t4.jpg",
+					"t/t5.jpg",
+					"t/t6.jpg"];
+	var i = 0;
+	textures.forEach(function(texture){
+		var sphere = new THREE.Mesh(
+			new THREE.SphereGeometry(50,10,10),
+			new THREE.MeshBasicMaterial({
+				map: THREE.ImageUtils.loadTexture(texture),
+				side: THREE.DoubleSide
+			})
+		);
+		sphere.scale.x = -1;
+		sphere.position.x = i * 100
+		sphere.position.z = 0;
+		sceneObjects.push(sphere);
+		scene.add(sphere);
+		i++;
+	});
+	
+	
+	
+	
+	
+	
+	
+	
+	//_________________________________________________________________________________
+	//		*SET Render Scene AS LAST QUE*
+	//¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+	onRenderFcts.push(function(){
+		renderer.render( scene, camera );
+	});
+	
+	//_________________________________________________________________________________
+	//		*ANIMATION AND TIME onRenderFcts PUSH LOOP*
+	//¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+	var lastTimeMsec= null;
+	requestAnimationFrame(function animate(nowMsec){
+		// keep looping
+		requestAnimationFrame( animate );
+		// measure time
+		lastTimeMsec	= lastTimeMsec || nowMsec-1000/60;
+		delta	= Math.min(200, nowMsec - lastTimeMsec);
+		lastTimeMsec	= nowMsec;
+		// call each update function
+		onRenderFcts.forEach(function(updateFn){
+			updateFn(delta/1000, nowMsec/1000);
+		});
+	});
+	
+	//_________________________________________________________________________________
+	//		exportGeometry(object) used for saving object geometry to string
+	//¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+	function exportGeometry(object) {
+		var exporter = new THREE.GeometryExporter();
+		var exportedGeometryObject = exporter.parse(object.geometry);
+		return exportedGeometryObject;
+	}
+	
+//_________________________________________________________________________________
+//		END BUILD
+//¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+return {app:scene};
+})();
+
+</script></body>
