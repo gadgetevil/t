@@ -45,10 +45,8 @@ var app = (function(){
 	//_________________________________________________________________________________
 	//		Camera
 	//¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
-	var camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1, 10000 );
+	var camera = new THREE.PerspectiveCamera(100, window.innerWidth / window.innerHeight, 1, 10000 );
 	camera.position.x = -50;
-	camera.position.y = 0;
-	camera.position.z = 0.2;
 	
 	//_________________________________________________________________________________
 	//		Camera Controls [THREE.OrbitControls]
@@ -87,12 +85,6 @@ var app = (function(){
 	function onKeyDown(event) {
 		var keycode = event.keyCode;
 		console.log('Key Down: ' + keycode);
-		camera.position.y = 0;
-		controls.target.y = 0;
-		camera.position.z = 0;
-		controls.target.z = 0;
-		camera.position.x = -50;
-		controls.target.x = -49.999;
 	}
 	
 	function onKeyUp(event) {
@@ -122,46 +114,64 @@ var app = (function(){
 					't/t3.jpg',
 					't/t4.jpg',
 					't/t5.jpg',
-					't/t6.jpg'];
+					't/t6.jpg',
+					't/tb1.png'];
 	var i = 0;
 	textures.forEach(function(texture){
-		var sphere = new THREE.Mesh(
-			new THREE.SphereGeometry(50,50,50),
-			new THREE.MeshBasicMaterial({
-				map: THREE.ImageUtils.loadTexture(texture),
-				side: THREE.DoubleSide
-			})
-		);
-		sphere.scale.x = -1;
-		sphere.position.x = i * 100
-		sphere.position.z = 0;
-		sceneObjects.push(sphere);
-		scene.add(sphere);
+		if (i != 6) {
+			var sphere = new THREE.Mesh(
+				new THREE.SphereGeometry(50,50,50),
+				new THREE.MeshBasicMaterial({
+					map: THREE.ImageUtils.loadTexture(texture),
+					side: THREE.DoubleSide
+				})
+			);
+			sphere.scale.x = -1;
+			sphere.position.x = i * 100
+			sphere.position.z = 0;
+			sceneObjects.push(sphere);
+			scene.add(sphere);
+		} else {
+			var box = new THREE.Mesh(
+				new THREE.BoxGeometry(100,100,100),
+				new THREE.MeshBasicMaterial({
+					map: THREE.ImageUtils.loadTexture(texture),
+					side: THREE.DoubleSide
+				})
+			);
+			box.scale.x = -1;
+			box.position.x = i * 100
+			box.position.z = 0;
+			sceneObjects.push(box);
+			scene.add(box);
+		}
 		i++;
 	});
 	
 	//camera/controls x = -50 to 550
 	var xx = 1;
 	onRenderFcts.push(function(){
-		if (controls.target.x >= 550) {
+		if (controls.target.x >= 650) {
 			xx = 0;
-			camera.position.set(550,0,0);
+			camera.position.set(camera.position.x,0,0);
 			controls.target.set(camera.position.x-0.001,0,0);
 		 }
 		else if (controls.target.x <= -50) {
 			xx = 1;
-			camera.position.set(-50,0,0);
+			camera.position.set(camera.position.x,0,0);
 			controls.target.set(camera.position.x+0.001,0,0);
 		 }
 		
 		if ( xx == 0 ) {
-			controls.target.x -= delta*0.001*100; // 1 second per 100px
-			camera.position.x -= delta*0.001*100;
+			controls.target.x -= (delta*0.001)/*1px sec*/* 100;//px sec [in frame update]
+			camera.position.x -= (delta*0.001)/*1px sec*/* 100;//px sec [in frame update]
 		} else {
-			controls.target.x += delta*0.001*100;
-			camera.position.x += delta*0.001*100;
+			controls.target.x += (delta*0.001)/*1px sec*/* 100;//px sec [in frame update]
+			camera.position.x += (delta*0.001)/*1px sec*/* 100;//px sec [in frame update]
 		}
-		
+		for (i = 0; i < sceneObjects.length-1; i++) {
+			sceneObjects[i].rotation.y += 5 * ((delta*0.01) * Math.PI / 180);
+		}
 	});
 	
 	
