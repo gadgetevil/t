@@ -73,6 +73,34 @@ var app = (function(){
 	//¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 	THREEx.WindowResize(renderer,camera);
 	
+	
+	//mouse listeners
+	//onMouseDownPosition = new THREE.Vector2();  
+	//document.addEventListener( 'mousemove', functionGoesHere, false );
+	//document.addEventListener( 'mousedown', functionGoesHere, false );
+	//document.addEventListener( 'mouseup', functionGoesHere, false );
+	//document.addEventListener( 'mousewheel', functionGoesHere, false ); 
+	
+	//key press listeners
+	document.addEventListener("keyup", onKeyUp, false);
+	document.addEventListener("keydown", onKeyDown, false);
+	function onKeyDown(event) {
+		var keycode = event.keyCode;
+		console.log('Key Down: ' + keycode);
+		camera.position.y = 0;
+		controls.target.y = 0;
+		camera.position.z = 0;
+		controls.target.z = 0;
+		camera.position.x = -50;
+		controls.target.x = -49.999;
+	}
+	
+	function onKeyUp(event) {
+		var keycode = event.keyCode;
+		console.log('Key Up:' + keycode);
+	}
+	
+	
 	//_________________________________________________________________________________
 	//		Stats.JS
 	//¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
@@ -87,7 +115,7 @@ var app = (function(){
 	});
 	
 	//_________________________________________________________________________________
-	//		Add Objects and Movement to Scene
+	//		Add Objects and Movement to Scene [example]
 	//¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 	var textures = ['t/t1.jpg',
 					't/t2.jpg',
@@ -98,7 +126,7 @@ var app = (function(){
 	var i = 0;
 	textures.forEach(function(texture){
 		var sphere = new THREE.Mesh(
-			new THREE.SphereGeometry(50,10,10),
+			new THREE.SphereGeometry(50,50,50),
 			new THREE.MeshBasicMaterial({
 				map: THREE.ImageUtils.loadTexture(texture),
 				side: THREE.DoubleSide
@@ -115,11 +143,24 @@ var app = (function(){
 	//camera/controls x = -50 to 550
 	var xx = 1;
 	onRenderFcts.push(function(){
-		if (controls.target.x >= 550) { xx = 0 }
-		else if (controls.target.x <= -50) { xx = 1 }
+		if (controls.target.x >= 550) {
+			xx = 0;
+			camera.position.set(550,0,0);
+			controls.target.set(camera.position.x-0.001,0,0);
+		 }
+		else if (controls.target.x <= -50) {
+			xx = 1;
+			camera.position.set(-50,0,0);
+			controls.target.set(camera.position.x+0.001,0,0);
+		 }
 		
-		if ( xx == 0 ) { controls.target.x -= 0.5; camera.position.x -= 0.5; }
-		else { controls.target.x += 0.5; camera.position.x += 0.5; }
+		if ( xx == 0 ) {
+			controls.target.x -= delta*0.001*100; // 1 second per 100px
+			camera.position.x -= delta*0.001*100;
+		} else {
+			controls.target.x += delta*0.001*100;
+			camera.position.x += delta*0.001*100;
+		}
 		
 	});
 	
