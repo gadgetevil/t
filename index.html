@@ -61,16 +61,6 @@ var app = (function(){
 		controls.update();
 	});
 	
-	//x = -50 to 550
-	var xx = 1;
-	onRenderFcts.push(function(){
-		if (controls.target.x >= 550) { xx = 0 }
-		else if (controls.target.x <= -50) { xx = 1 }
-		
-		if ( xx == 0 ) { controls.target.x -= 0.5; camera.position.x -= 0.5; }
-		else { controls.target.x += 0.5; camera.position.x += 0.5; }
-		
-	});
 	//_________________________________________________________________________________
 	//		Light
 	//¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
@@ -99,12 +89,12 @@ var app = (function(){
 	//_________________________________________________________________________________
 	//		Add Objects and Movement to Scene
 	//¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
-	var textures = ["t/t1.jpg",
-					"t/t2.jpg",
-					"t/t3.jpg",
-					"t/t4.jpg",
-					"t/t5.jpg",
-					"t/t6.jpg"];
+	var textures = ['t/t1.jpg',
+					't/t2.jpg',
+					't/t3.jpg',
+					't/t4.jpg',
+					't/t5.jpg',
+					't/t6.jpg'];
 	var i = 0;
 	textures.forEach(function(texture){
 		var sphere = new THREE.Mesh(
@@ -122,6 +112,16 @@ var app = (function(){
 		i++;
 	});
 	
+	//camera/controls x = -50 to 550
+	var xx = 1;
+	onRenderFcts.push(function(){
+		if (controls.target.x >= 550) { xx = 0 }
+		else if (controls.target.x <= -50) { xx = 1 }
+		
+		if ( xx == 0 ) { controls.target.x -= 0.5; camera.position.x -= 0.5; }
+		else { controls.target.x += 0.5; camera.position.x += 0.5; }
+		
+	});
 	
 	
 	
