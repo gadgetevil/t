@@ -3,112 +3,65 @@
 		b_14.12.06
 */</script>
 <!DOCTYPE html>
-<!-- [ JQuery ] -->
-<script src="js/jquery-2.1.1.js"></script>
-<!-- [ THREE.JS ] -->
-<script src="js/three.min.js"></script>
-<!-- [ THREE.JS Geometry Import/Export ] -->
-<script src="js/GeometryLoader.js"></script>
-<script src="js/GeometryExporter.js"></script>
-<!-- [ THREE.JS Controls ] -->
-<script src="js/OrbitControls.js"></script>
-<!-- [ THREEx helper Javascript ] -->
-<script src="js/threex.windowresize.js"></script>
-<!-- [ Stats.JS Onscreen Stats Display ] -->
-<script src="js/stats.min.js"></script>
-
+<script src="js/jquery-2.1.1.js">/*			JQuery								*/</script>
+<script src="js/three.min.js">/*			THREE.JS							*/</script>
+<script src="js/GeometryLoader.js">/*		THREE.JS Geometry Import			*/</script>
+<script src="js/GeometryExporter.js">/*		THREE.JS Geometry Export			*/</script>
+<script src="js/FirstPersonControls.js">/*		THREE.JS Controls					*/</script>
+<script src="js/threex.windowresize.js">/*	THREEx helper Javascript			*/</script>
+<script src="js/stats.min.js">/*			Stats.JS Onscreen Stats Display		*/</script>
 <body style='margin:0px;padding:0px;background-color:#000;overflow:hidden;'>
-<script>
-//_________________________________________________________________________________
-//		INITIATE BUILD
-//¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+<script>//		INITIATE BUILD
 var app = (function(){
 	//_________________________________________________________________________________
-	//		Renderer for WebGL
-	//¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
-	var delta;
+	//		Renderer
+	var clock = new THREE.Clock(), delta;
 	var renderer = new THREE.WebGLRenderer();
 	renderer.setSize( window.innerWidth, window.innerHeight );
 	document.body.appendChild( renderer.domElement );
 	renderer.setClearColor('black',1);
-	
 	//_________________________________________________________________________________
-	//		Render Que Array *this will be the main set of loop functions
-	//¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
-	var onRenderFcts = [];
+	//		Render Que Array
+	var renderQue = [];
+	//_________________________________________________________________________________
+	//		Scene Object Array
 	var sceneObjects = [];
 	//_________________________________________________________________________________
 	//		Scene
-	//¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 	var scene = new THREE.Scene();
-	
 	//_________________________________________________________________________________
 	//		Camera
-	//¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
-	var camera = new THREE.PerspectiveCamera(100, window.innerWidth / window.innerHeight, 1, 10000 );
-	camera.position.x = -50;
-	
+	var camera = new THREE.PerspectiveCamera(100, window.innerWidth / window.innerHeight, 0.01, 10000 );
+	camera.position.set(2,2,2);
+	scene.add(camera);
 	//_________________________________________________________________________________
-	//		Camera Controls [THREE.OrbitControls]
-	//¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
-	var controls = new THREE.OrbitControls(camera);
-	controls.target.x = -50
-	controls.target.y = 0;
-	controls.target.z = 0;
-	onRenderFcts.push(function(){
-		controls.update();
+	//		Controls
+	var controls = new THREE.FirstPersonControls( camera );
+	controls.target.set(1,1,1);
+	renderQue.push(function(){
+		controls.update( delta );
 	});
-	
 	//_________________________________________________________________________________
 	//		Light
-	//¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 	var light = new THREE.HemisphereLight( 0xfffff0, 0x101020, 0.2 );
 	light.position.set( 0.75, 1, 0.25 );
 	scene.add(light);
-	
 	//_________________________________________________________________________________
 	//		Window Resize [THREEx.WindowResize]
-	//¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 	THREEx.WindowResize(renderer,camera);
-	
-	
-	//mouse listeners
-	//onMouseDownPosition = new THREE.Vector2();  
-	//document.addEventListener( 'mousemove', functionGoesHere, false );
-	//document.addEventListener( 'mousedown', functionGoesHere, false );
-	//document.addEventListener( 'mouseup', functionGoesHere, false );
-	//document.addEventListener( 'mousewheel', functionGoesHere, false ); 
-	
-	//key press listeners
-	document.addEventListener("keyup", onKeyUp, false);
-	document.addEventListener("keydown", onKeyDown, false);
-	function onKeyDown(event) {
-		var keycode = event.keyCode;
-		console.log('Key Down: ' + keycode);
-	}
-	
-	function onKeyUp(event) {
-		var keycode = event.keyCode;
-		console.log('Key Up:' + keycode);
-	}
-	
-	
 	//_________________________________________________________________________________
 	//		Stats.JS
-	//¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 	stats = new Stats();
 	stats.setMode(0);
 	stats.domElement.style.position = 'absolute';
 	stats.domElement.style.right = '0px';
 	stats.domElement.style.bottom = '0px';
 	document.body.appendChild(stats.domElement);
-	onRenderFcts.push(function(){
+	renderQue.push(function(){
 		stats.update();
 	});
-	
 	//_________________________________________________________________________________
 	//		Add Objects and Movement to Scene [example]
-	//¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 	var textures = ['t/t1.jpg',
 					't/t2.jpg',
 					't/t3.jpg',
@@ -147,76 +100,84 @@ var app = (function(){
 		}
 		i++;
 	});
-	
-	//camera/controls x = -50 to 550
-	var xx = 1;
-	onRenderFcts.push(function(){
-		if (controls.target.x >= 650) {
-			xx = 0;
-			camera.position.set(camera.position.x,0,0);
-			controls.target.set(camera.position.x-0.001,0,0);
-		 }
-		else if (controls.target.x <= -50) {
-			xx = 1;
-			camera.position.set(camera.position.x,0,0);
-			controls.target.set(camera.position.x+0.001,0,0);
-		 }
-		
-		if ( xx == 0 ) {
-			controls.target.x -= (delta*0.001)/*1px sec*/* 100;//px sec [in frame update]
-			camera.position.x -= (delta*0.001)/*1px sec*/* 100;//px sec [in frame update]
-		} else {
-			controls.target.x += (delta*0.001)/*1px sec*/* 100;//px sec [in frame update]
-			camera.position.x += (delta*0.001)/*1px sec*/* 100;//px sec [in frame update]
-		}
-		for (i = 0; i < sceneObjects.length-1; i++) {
-			sceneObjects[i].rotation.y += 5 * ((delta*0.01) * Math.PI / 180);
-		}
-	});
-	
-	
-	
-	
-	
-	
-	
 	//_________________________________________________________________________________
-	//		*SET Render Scene AS LAST QUE*
-	//¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
-	onRenderFcts.push(function(){
+	//		*SET Render Scene*
+	
+	renderQue.push(function(){
 		renderer.render( scene, camera );
 	});
-	
 	//_________________________________________________________________________________
-	//		*ANIMATION AND TIME onRenderFcts PUSH LOOP*
-	//¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+	//		*ANIMATION AND TIME renderQue PUSH LOOP*
+	
 	var lastTimeMsec= null;
 	requestAnimationFrame(function animate(nowMsec){
-		// keep looping
 		requestAnimationFrame( animate );
-		// measure time
-		lastTimeMsec	= lastTimeMsec || nowMsec-1000/60;
-		delta	= Math.min(200, nowMsec - lastTimeMsec);
-		lastTimeMsec	= nowMsec;
-		// call each update function
-		onRenderFcts.forEach(function(updateFn){
-			updateFn(delta/1000, nowMsec/1000);
+		delta = clock.getDelta();
+		renderQue.forEach(function(renderQueFunction){
+			renderQueFunction(delta);
 		});
 	});
+//_________________________________________________________________________________
+//		END BUILD
+
+	return {app:scene};
+})();
+
+
+//to add later or for reference
+	//mouse listeners
+	//onMouseDownPosition = new THREE.Vector2();  
+	//document.addEventListener( 'mousemove', functionGoesHere, false );
+	//document.addEventListener( 'mousedown', functionGoesHere, false );
+	//document.addEventListener( 'mouseup', functionGoesHere, false );
+	//document.addEventListener( 'mousewheel', functionGoesHere, false ); 
+	//key press listeners
+	//document.addEventListener("keyup", onKeyUp, false);
+	//document.addEventListener("keydown", onKeyDown, false);
+	//function onKeyDown(event) {
+	//	var keycode = event.keyCode;
+	//	console.log('Key Down: ' + keycode);
+	//}
+	//function onKeyUp(event) {
+	//	var keycode = event.keyCode;
+	//	console.log('Key Up:' + keycode);
+	//}
+
+
+	//camera/controls x = -50 to 550
+	//var xx = 1;
+	//renderQue.push(function(){
+	//	if (controls.target.x >= 650) {
+	//		xx = 0;
+	//		camera.position.set(camera.position.x,0,0);
+	//		controls.target.set(camera.position.x-0.001,0,0);
+	//	 }
+	//	else if (controls.target.x <= -50) {
+	//		xx = 1;
+	//		camera.position.set(camera.position.x,0,0);
+	//		controls.target.set(camera.position.x+0.001,0,0);
+	//	 }
+	//	
+	//	if ( xx == 0 ) {
+	//		controls.target.x -= (delta*0.001)/*1px sec*/* 100;//px sec [in frame update]
+	//		camera.position.x -= (delta*0.001)/*1px sec*/* 100;//px sec [in frame update]
+	//	} else {
+	//		controls.target.x += (delta*0.001)/*1px sec*/* 100;//px sec [in frame update]
+	//		camera.position.x += (delta*0.001)/*1px sec*/* 100;//px sec [in frame update]
+	//	}
+	//	for (i = 0; i < sceneObjects.length-1; i++) {
+	//		sceneObjects[i].rotation.y += 5 * ((delta*0.01) * Math.PI / 180);
+	//	}
+	//});
+	
+	
 	
 	//_________________________________________________________________________________
 	//		exportGeometry(object) used for saving object geometry to string
-	//¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
-	function exportGeometry(object) {
-		var exporter = new THREE.GeometryExporter();
-		var exportedGeometryObject = exporter.parse(object.geometry);
-		return exportedGeometryObject;
-	}
 	
-//_________________________________________________________________________________
-//		END BUILD
-//¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
-return {app:scene};
-})();
-
+	//function exportGeometry(object) {
+	//	var exporter = new THREE.GeometryExporter();
+	//	var exportedGeometryObject = exporter.parse(object.geometry);
+	//	return exportedGeometryObject;
+	//}
 </script></body>
